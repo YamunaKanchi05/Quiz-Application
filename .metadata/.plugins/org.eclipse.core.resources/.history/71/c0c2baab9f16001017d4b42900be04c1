@@ -1,0 +1,50 @@
+package com.lpu.quiz_service.service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.annotation.PostConstruct;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import java.util.Base64;
+import java.util.Date;
+
+@Service
+public class JwtService {
+
+    private String secretKey;
+
+    @PostConstruct
+    public void init() {
+        SecretKey key = io.jsonwebtoken.security.Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        secretKey = Base64.getEncoder().encodeToString(key.getEncoded());
+    }
+
+    public String extractUserName(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
+    public String extractRole(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("role", String.class); // Token should include "role"
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+            .setSigningKey(Base64.getDecoder().decode(secretKey))
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
+    }
+
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUserName(token);
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    private boolean isTokenExpired(String token) {
+        return extractAllClaims(token).getExpiration().before(new Date());
+    }
+}

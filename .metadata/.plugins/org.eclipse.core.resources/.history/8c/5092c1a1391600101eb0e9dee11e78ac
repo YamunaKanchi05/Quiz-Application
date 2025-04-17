@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: quiz-service
+          uri: lb://QUIZ-SERVICE
+          predicates:
+            - Path=/api/quiz/**
+        - id: question-service
+          uri: lb://QUESTION-SERVICE
+          predicates:
+            - Path=/api/question/**
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/quiz_db
+    username: root
+    password: root
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true 

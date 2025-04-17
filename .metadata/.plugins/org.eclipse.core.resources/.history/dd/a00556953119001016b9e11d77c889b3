@@ -1,0 +1,38 @@
+package com.lpu.leaderboard_service.controller;
+
+import com.lpu.leaderboard_service.model.ScoreEntry;
+import com.lpu.leaderboard_service.service.LeaderBoardService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("leaderboard")
+public class LeaderBoardController {
+
+    @Autowired
+    private LeaderBoardService leaderboardService;
+
+    // Add score
+    @PostMapping("add")
+    public ResponseEntity<ScoreEntry> addScore(@RequestBody ScoreEntry scoreEntry) {
+        // Add score to the leaderboard and return the saved score entry
+        return leaderboardService.addScore(scoreEntry);
+    }
+
+    // Get top scores
+    @GetMapping("top")
+    public ResponseEntity<List<ScoreEntry>> getTopScores() {
+        // Get the top scores and return them
+        return leaderboardService.getTopScores();
+    }
+
+    // Get scores for a specific user
+    @GetMapping("user/{id}")
+    public ResponseEntity<List<ScoreEntry>> getUserScores(@PathVariable Integer id) {
+        // Get the scores of a specific user based on user ID and return them
+        return leaderboardService.getUserScores(id);
+    }
+}

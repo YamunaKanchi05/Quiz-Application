@@ -1,0 +1,5 @@
+package com.lpu.leaderboard_service.feign;
+
+public class QuizServiceClient {
+
+}

@@ -1,0 +1,5 @@
+package com.lpu.leaderboard_service.service;
+
+public class LeaderBoardService {
+
+}

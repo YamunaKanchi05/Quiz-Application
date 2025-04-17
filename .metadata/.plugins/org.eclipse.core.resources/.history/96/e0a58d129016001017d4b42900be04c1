@@ -1,0 +1,5 @@
+package com.lpu.auth_service.repo;
+
+public class UserRepo {
+
+}

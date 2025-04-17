@@ -1,0 +1,5 @@
+package com.lpu.auth_service.model;
+
+public class UserPrincipal {
+
+}

@@ -1,0 +1,38 @@
+package com.lpu.apigateway.config;
+
+import io.r2dbc.spi.ConnectionFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.r2dbc.config.EnableR2dbcAuditing;
+import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
+import org.springframework.r2dbc.connection.init.ResourceDatabasePopulator;
+import org.springframework.r2dbc.core.DatabaseClient;
+
+@Configuration
+@EnableR2dbcRepositories
+@EnableR2dbcAuditing
+public class DatabaseConfig {
+
+    @Value("${spring.r2dbc.url}")
+    private String url;
+
+    @Value("${spring.r2dbc.username}")
+    private String username;
+
+    @Value("${spring.r2dbc.password}")
+    private String password;
+
+    @Bean
+    public ConnectionFactoryInitializer initializer(ConnectionFactory connectionFactory) {
+        ConnectionFactoryInitializer initializer = new ConnectionFactoryInitializer();
+        initializer.setConnectionFactory(connectionFactory);
+        ResourceDatabasePopulator populator = new ResourceDatabasePopulator();
+        populator.addScript(new ClassPathResource("schema.sql"));
+        populator.addScript(new ClassPathResource("data.sql"));
+        initializer.setDatabasePopulator(populator);
+        return initializer;
+    }
+} 

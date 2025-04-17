@@ -1,0 +1,5 @@
+package com.lpu.leaderboard_service.model;
+
+public class ScoreEntry {
+
+}

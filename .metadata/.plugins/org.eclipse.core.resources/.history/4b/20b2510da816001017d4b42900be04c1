@@ -1,0 +1,28 @@
+package com.lpu.auth_service.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import com.lpu.auth_service.model.Users;
+import com.lpu.auth_service.service.UserService;
+
+@RestController
+ // Optional but better for versioning and grouping
+public class AuthContoller {
+
+    @Autowired
+    private UserService service;
+
+    @PostMapping("/register")
+    public ResponseEntity<Users> register(@RequestBody Users user) {
+        Users savedUser = service.register(user);
+        return ResponseEntity.ok(savedUser); // Returns HTTP 200 OK with user info
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody Users user) {
+        String token = service.verify(user);
+        return ResponseEntity.ok(token); // Returns token as plain text or JSON string
+    }
+}

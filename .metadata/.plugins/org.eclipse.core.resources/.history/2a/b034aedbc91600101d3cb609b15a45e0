@@ -1,0 +1,5 @@
+package com.lpu.apigateway.config;
+
+public class SecurityConfig {
+
+}

@@ -1,0 +1,71 @@
+package com.quiz.api.gateway.filter;
+
+import com.quiz.api.gateway.config.JwtConfig;
+import org.springframework.cloud.gateway.filter.GatewayFilter;
+import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
+
+@Component
+public class JwtAuthenticationFilter extends AbstractGatewayFilterFactory<JwtAuthenticationFilter.Config> {
+
+    private final JwtConfig jwtConfig;
+
+    public JwtAuthenticationFilter(JwtConfig jwtConfig) {
+        super(Config.class);
+        this.jwtConfig = jwtConfig;
+    }
+
+    @Override
+    public GatewayFilter apply(Config config) {
+        return (exchange, chain) -> {
+            ServerHttpRequest request = exchange.getRequest();
+            String path = request.getURI().getPath();
+            
+            // Skip token validation for auth endpoints
+            if (path.contains("/auth/")) {
+                return chain.filter(exchange);
+            }
+
+            // Get token from Authorization header
+            String authHeader = request.getHeaders().getFirst("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
+            }
+
+            String token = authHeader.substring(7);
+
+            // Validate token
+            if (!jwtConfig.validateToken(token)) {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
+            }
+
+            // Extract role from token
+            String role = jwtConfig.extractRole(token);
+
+            // Check role-based access for quiz management endpoints
+            if (path.contains("/quiz/create") || path.contains("/quiz/update") || path.contains("/quiz/delete")) {
+                if (!"ADMIN".equals(role)) {
+                    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                    return exchange.getResponse().setComplete();
+                }
+            }
+
+            // Add user info to headers for downstream services
+            ServerHttpRequest modifiedRequest = request.mutate()
+                    .header("X-User-Id", jwtConfig.extractUsername(token))
+                    .header("X-User-Role", role)
+                    .build();
+
+            return chain.filter(exchange.mutate().request(modifiedRequest).build());
+        };
+    }
+
+    public static class Config {
+        // Configuration class can be empty since we're not using it
+    }
+} 

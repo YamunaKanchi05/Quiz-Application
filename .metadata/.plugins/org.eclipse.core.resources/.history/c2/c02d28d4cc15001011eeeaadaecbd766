@@ -1,0 +1,5 @@
+package com.lpu.question_service.model;
+
+public class QuestionWrapper {
+
+}

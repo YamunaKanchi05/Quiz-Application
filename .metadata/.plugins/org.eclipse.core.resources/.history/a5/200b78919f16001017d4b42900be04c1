@@ -1,0 +1,36 @@
+package com.lpu.auth_service.service;
+
+import java.util.Base64;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.stereotype.Service;
+
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
+@Service
+public class JWTService {
+
+    private final String secretKey;
+
+    public JWTService() {
+        SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        this.secretKey = Base64.getEncoder().encodeToString(key.getEncoded());
+    }
+
+    // ✅ Include username and role in token
+    public String generateToken(String username, String role) {
+        return Jwts.builder()
+            .setSubject(username)
+            .claim("role", role)
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
+            .signWith(Keys.hmacShaKeyFor(Base64.getDecoder().decode(secretKey)))
+            .compact();
+    }
+
+    // ❌ Don't validate or extract anything here (leave to other microservices)
+}

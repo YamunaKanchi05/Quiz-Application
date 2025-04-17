@@ -1,0 +1,22 @@
+package com.lpu.quiz_service.service;
+
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+
+@Service
+public class MyUserDetailsService implements UserDetailsService {
+
+    @Override
+    public UserDetails loadUserByUsername(String username) {
+        // This is dummy. Ideally, call AUTH-SERVICE to validate username + role.
+        return User.builder()
+            .username(username)
+            .password("") // Password is not needed during token validation
+            .roles("USER") // You can assign roles dynamically if needed
+            .build();
+    }
+}

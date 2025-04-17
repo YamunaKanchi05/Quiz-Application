@@ -1,0 +1,71 @@
+package com.lpu.leaderboard_service.model;
+
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+public class ScoreEntry {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    private Integer userId;
+    private Integer score;
+    private LocalDateTime dateTime;
+
+    // No-argument constructor
+    public ScoreEntry() {}
+
+    // All-arguments constructor
+    public ScoreEntry(Integer id, Integer userId, Integer score, LocalDateTime dateTime) {
+        this.id = id;
+        this.userId = userId;
+        this.score = score;
+        this.dateTime = dateTime;
+    }
+
+    // Getters and Setters
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
+
+    public LocalDateTime getDateTime() {
+        return dateTime;
+    }
+
+    public void setDateTime(LocalDateTime dateTime) {
+        this.dateTime = dateTime;
+    }
+
+    // toString() method
+    @Override
+    public String toString() {
+        return "ScoreEntry{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", score=" + score +
+                ", dateTime=" + dateTime +
+                '}';
+    }
+}

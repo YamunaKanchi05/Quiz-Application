@@ -1,0 +1,73 @@
+package com.lpu.api_gateway.filter;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Mono;
+
+import java.nio.charset.StandardCharsets;
+
+@Component
+public class JwtAuthFilter implements GlobalFilter {
+
+    @Value("${jwt.secret}")
+    private String secretKey;
+
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final String ROLE_USER = "USER";
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        String path = exchange.getRequest().getURI().getPath();
+        System.out.println("Incoming request path: " + path);
+
+        // Use a regex to skip token validation for any endpoint containing /login or /register
+        if (path.matches(".*(/login|/register).*")) {
+            System.out.println("Skipping JWT validation for public endpoint: " + path);
+            return chain.filter(exchange);
+        }
+
+        // Get token from Authorization header
+        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7); // Remove "Bearer "
+
+        try {
+            // Validate token and extract claims
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8)))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String role = claims.get("role", String.class);
+            System.out.println("Extracted role from token: " + role);
+
+            // Role-based access control:
+            // For quiz creation: only ADMIN can access
+            if (path.contains("/quiz-service/quiz/create") && !ROLE_ADMIN.equals(role)) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only ADMIN can create quizzes");
+            }
+            // For quiz get and submit endpoints: allow both ADMIN and USER
+            if ((path.contains("/quiz-service/quiz/get/") || path.contains("/quiz-service/quiz/submit/")) &&
+                !(ROLE_ADMIN.equals(role) || ROLE_USER.equals(role))) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access denied");
+            }
+
+            return chain.filter(exchange);
+        } catch (JwtException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired token");
+        }
+    }
+}
