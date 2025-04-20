@@ -1,5 +1,0 @@
-package com.lpu.api_gateway.util;
-
-public class JwtUtil {
-
-}
